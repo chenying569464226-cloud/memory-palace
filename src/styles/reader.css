@@ -69,47 +69,60 @@
   white-space: nowrap;
 }
 
-.reader-export {
+.reader-action-btn {
   flex-shrink: 0;
-  font-size: 0.78rem;
-  padding: 6px 10px;
+  font-size: 0.8rem;
+  padding: 7px 11px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.2);
-  color: inherit;
+  border: 1px solid rgba(143, 191, 106, 0.55);
+  background: rgba(143, 191, 106, 0.28);
+  color: #eef6e8;
+  font-weight: 650;
   font-family: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.reader-icon-btn {
+.reader-tts-btn {
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   padding: 0;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(0, 0, 0, 0.22);
-  color: inherit;
-  font-size: 0.85rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.12);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.72rem;
   line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-family: inherit;
+  touch-action: manipulation;
 }
 
-.reader-icon-btn.on {
-  background: rgba(200, 160, 90, 0.35);
-  border-color: rgba(200, 160, 90, 0.55);
+.reader-tts-btn.on {
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(200, 160, 90, 0.4);
+  background: rgba(200, 160, 90, 0.18);
 }
 
 @media (prefers-color-scheme: light) {
-  .reader-icon-btn {
-    border-color: rgba(0, 0, 0, 0.12);
-    background: rgba(255, 255, 255, 0.55);
+  .reader-action-btn {
+    border-color: rgba(90, 130, 60, 0.45);
+    background: rgba(143, 191, 106, 0.35);
+    color: #1f3314;
   }
 
-  .reader-icon-btn.on {
-    background: rgba(120, 90, 40, 0.15);
+  .reader-tts-btn {
+    border-color: rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.45);
+    color: rgba(0, 0, 0, 0.45);
+  }
+
+  .reader-tts-btn.on {
+    color: rgba(80, 55, 20, 0.85);
+    background: rgba(120, 90, 40, 0.12);
   }
 }
 

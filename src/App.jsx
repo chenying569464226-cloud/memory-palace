@@ -918,15 +918,24 @@ function SwipeBookRow({ t, onDelete, children }) {
   const [x, setX] = useState(0);
   const xRef = useRef(0);
   const start = useRef(null);
-  const open = 88;
+  const axisRef = useRef(null);
+  const open = 92;
+  const axisLockPx = 6;
 
   function slideTo(next) {
     xRef.current = next;
     setX(next);
   }
 
+  function endGesture() {
+    if (!start.current) return;
+    slideTo(xRef.current < -open / 3 ? -open : 0);
+    start.current = null;
+    axisRef.current = null;
+  }
+
   return (
-    <div className="swipe">
+    <div className="swipe swipe-book">
       <div className="swipe-actions one">
         <button className="act del" type="button" onClick={onDelete}>
           {t.del}
@@ -936,8 +945,9 @@ function SwipeBookRow({ t, onDelete, children }) {
         className="swipe-front book-swipe-front"
         style={{ transform: `translateX(${x}px)` }}
         onPointerDown={(e) => {
-          if (e.target.closest("button")) return;
-          start.current = { x: e.clientX, from: xRef.current };
+          if (e.button !== 0) return;
+          start.current = { x: e.clientX, y: e.clientY, from: xRef.current };
+          axisRef.current = null;
           try {
             e.currentTarget.setPointerCapture(e.pointerId);
           } catch {
@@ -946,19 +956,19 @@ function SwipeBookRow({ t, onDelete, children }) {
         }}
         onPointerMove={(e) => {
           if (!start.current) return;
-          const dx = e.clientX - start.current.x + start.current.from;
-          slideTo(Math.min(0, Math.max(-open, dx)));
+          const dx = e.clientX - start.current.x;
+          const dy = e.clientY - start.current.y;
+          if (!axisRef.current) {
+            if (Math.abs(dx) < axisLockPx && Math.abs(dy) < axisLockPx) return;
+            axisRef.current = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+          }
+          if (axisRef.current === "y") return;
+          if (e.cancelable) e.preventDefault();
+          const total = dx + start.current.from;
+          slideTo(Math.min(0, Math.max(-open, total)));
         }}
-        onPointerUp={() => {
-          if (!start.current) return;
-          slideTo(xRef.current < -open / 2 ? -open : 0);
-          start.current = null;
-        }}
-        onPointerCancel={() => {
-          if (!start.current) return;
-          slideTo(xRef.current < -open / 2 ? -open : 0);
-          start.current = null;
-        }}
+        onPointerUp={endGesture}
+        onPointerCancel={endGesture}
       >
         {children}
       </div>
@@ -1028,13 +1038,9 @@ function BookWordEditor({ t, lang, book, pages, onClose, onSave }) {
     typeof book.name === "string" ? book.name : book.name[lang] ?? book.name.zh ?? "";
   const [name, setName] = useState(bookTitle);
   const [doc, setDoc] = useState(() => composeBookDocument(pages));
-  const [exitPrompt, setExitPrompt] = useState(false);
   const [ctxMenu, setCtxMenu] = useState(null);
   const [fontSize, setFontSize] = useState(loadBookEditorFontSize);
   const docRef = useRef(null);
-
-  const savedDoc = useMemo(() => composeBookDocument(pages), [pages]);
-  const dirty = doc !== savedDoc || name.trim() !== bookTitle.trim();
 
   useEffect(() => {
     setName(bookTitle);
@@ -1061,22 +1067,9 @@ function BookWordEditor({ t, lang, book, pages, onClose, onSave }) {
     };
   }, [ctxMenu]);
 
-  function handleSave() {
-    onSave(doc, name);
-  }
-
   function persistAndClose() {
     onSave(doc, name);
-    setExitPrompt(false);
     onClose();
-  }
-
-  function requestClose() {
-    if (!dirty) {
-      onClose();
-      return;
-    }
-    setExitPrompt(true);
   }
 
   function insertSnippet(snippet) {
@@ -1124,29 +1117,15 @@ function BookWordEditor({ t, lang, book, pages, onClose, onSave }) {
     <section className="book-editor-wrap book-editor-immersive">
       <div className="book-doc-frame">
         <div
-          className="book-doc-toolbar"
+          className="book-doc-toolbar book-doc-toolbar-minimal"
           onContextMenu={(e) => e.preventDefault()}
         >
-          <div className="book-doc-toolbar-start">
-            <button className="primary book-doc-tool" type="button" onClick={handleSave}>
-              {t.save}
-            </button>
-            <button className="ghost book-doc-done" type="button" onClick={persistAndClose}>
-              {t.saveAndLeave}
-            </button>
-            <span className="book-font-badge" aria-live="polite">
-              {fontSize}px
-            </span>
-          </div>
-          <button
-            className="icon-close-btn book-doc-close"
-            type="button"
-            onClick={requestClose}
-            aria-label={t.backToList}
-            title={t.backToList}
-          >
-            ×
+          <button className="primary book-doc-save-exit" type="button" onClick={persistAndClose}>
+            {t.saveAndLeave}
           </button>
+          <span className="book-font-badge" aria-live="polite">
+            {fontSize}px
+          </span>
         </div>
         <label className="book-doc-label">{t.categoryName}</label>
         <input
@@ -1212,38 +1191,6 @@ function BookWordEditor({ t, lang, book, pages, onClose, onSave }) {
         </div>
       )}
 
-      {exitPrompt && (
-        <div
-          className="book-exit-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t.saveBeforeLeave}
-          onClick={() => setExitPrompt(false)}
-        >
-          <div
-            className="book-exit-sheet card"
-            onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            <p className="subject">{t.saveBeforeLeave}</p>
-            <p className="tiny">{t.saveBeforeLeaveHint}</p>
-            <div className="book-exit-actions">
-              <button className="primary" type="button" onClick={persistAndClose}>
-                {t.saveAndLeave}
-              </button>
-              <button className="ghost" type="button" onClick={() => {
-                setExitPrompt(false);
-                onClose();
-              }}>
-                {t.leaveWithoutSave}
-              </button>
-              <button className="ghost" type="button" onClick={() => setExitPrompt(false)}>
-                {t.cancel}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }
@@ -1356,20 +1303,20 @@ function BookReader({
       <header className="reader-topbar">
         <h2 className="reader-book-name">{bookTitle}</h2>
         <div className="reader-topbar-actions">
+          <button className="reader-action-btn" type="button" onClick={onEnterEdit}>
+            {t.editBook}
+          </button>
+          <button className="reader-action-btn" type="button" onClick={exportWord}>
+            {t.exportWord}
+          </button>
           <button
-            className={`reader-icon-btn ${speaking ? "on" : ""}`}
+            className={`reader-tts-btn ${speaking ? "on" : ""}`}
             type="button"
             onClick={toggleSpeech}
             aria-label={speaking ? t.readerStop : t.readerSpeak}
             title={speaking ? t.readerStop : t.readerSpeak}
           >
-            {speaking ? "■" : "▶"}
-          </button>
-          <button className="reader-export" type="button" onClick={onEnterEdit}>
-            {t.editBook}
-          </button>
-          <button className="reader-export" type="button" onClick={exportWord}>
-            {t.exportWord}
+            {speaking ? "■" : "♪"}
           </button>
           <button
             className="icon-close-btn reader-close"

@@ -437,8 +437,14 @@ input {
   margin-bottom: 0;
 }
 
+.swipe-book .book-swipe-front {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 .swipe-actions.one {
-  width: 88px;
+  width: 92px;
   grid-template-columns: 1fr;
 }
 
@@ -512,6 +518,24 @@ input {
   gap: 8px;
 }
 
+.book-doc-toolbar-minimal {
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.book-doc-save-exit {
+  flex: 1;
+  min-height: 48px;
+  margin: 0;
+  width: auto;
+  max-width: none;
+  font-size: 1rem;
+  font-weight: 650;
+  border-radius: 12px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .icon-close-btn {
   flex-shrink: 0;
   width: 36px;
@@ -535,27 +559,6 @@ input {
   background: rgba(0, 0, 0, 0.04);
 }
 
-.book-doc-tool,
-.book-doc-done,
-.book-doc-close {
-  margin: 0;
-  width: auto;
-  flex: 0 0 auto;
-  min-height: 44px;
-  min-width: 44px;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  position: relative;
-  z-index: 13;
-}
-
-.book-doc-done {
-  padding: 8px 12px;
-  border-radius: 10px;
-  color: #2a2a2a;
-  border-color: rgba(0, 0, 0, 0.18);
-  background: rgba(255, 255, 255, 0.65);
-}
 
 .book-doc-label {
   display: block;
