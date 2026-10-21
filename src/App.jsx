@@ -1039,7 +1039,7 @@ function BookWordEditor({ t, lang, book, pages, onClose, onSave }) {
   useEffect(() => {
     setName(bookTitle);
     setDoc(composeBookDocument(pages));
-  }, [book.id, bookTitle, pages]);
+  }, [book.id, bookTitle]);
 
   useEffect(() => {
     localStorage.setItem(BOOK_EDITOR_FONT_KEY, String(fontSize));
@@ -1047,18 +1047,23 @@ function BookWordEditor({ t, lang, book, pages, onClose, onSave }) {
 
   useEffect(() => {
     if (!ctxMenu) return undefined;
-    function dismiss() {
+    function dismiss(e) {
+      if (e.target?.closest?.(".book-ctx-menu")) return;
       setCtxMenu(null);
     }
-    window.addEventListener("pointerdown", dismiss);
+    document.addEventListener("pointerdown", dismiss, true);
     window.addEventListener("scroll", dismiss, true);
     window.addEventListener("resize", dismiss);
     return () => {
-      window.removeEventListener("pointerdown", dismiss);
+      document.removeEventListener("pointerdown", dismiss, true);
       window.removeEventListener("scroll", dismiss, true);
       window.removeEventListener("resize", dismiss);
     };
   }, [ctxMenu]);
+
+  function handleSave() {
+    onSave(doc, name);
+  }
 
   function persistAndClose() {
     onSave(doc, name);
@@ -1116,12 +1121,18 @@ function BookWordEditor({ t, lang, book, pages, onClose, onSave }) {
   }
 
   return (
-    <section className="book-editor-wrap">
-      <div className="book-doc-frame" onContextMenu={onEditorContextMenu}>
-        <div className="book-doc-toolbar">
+    <section className="book-editor-wrap book-editor-immersive">
+      <div className="book-doc-frame">
+        <div
+          className="book-doc-toolbar"
+          onContextMenu={(e) => e.preventDefault()}
+        >
           <div className="book-doc-toolbar-start">
-            <button className="primary book-doc-tool" type="button" onClick={() => onSave(doc, name)}>
+            <button className="primary book-doc-tool" type="button" onClick={handleSave}>
               {t.save}
+            </button>
+            <button className="ghost book-doc-done" type="button" onClick={persistAndClose}>
+              {t.saveAndLeave}
             </button>
             <span className="book-font-badge" aria-live="polite">
               {fontSize}px
@@ -1202,8 +1213,18 @@ function BookWordEditor({ t, lang, book, pages, onClose, onSave }) {
       )}
 
       {exitPrompt && (
-        <div className="book-exit-backdrop" role="dialog" aria-modal="true" aria-label={t.saveBeforeLeave}>
-          <div className="book-exit-sheet card">
+        <div
+          className="book-exit-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.saveBeforeLeave}
+          onClick={() => setExitPrompt(false)}
+        >
+          <div
+            className="book-exit-sheet card"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
             <p className="subject">{t.saveBeforeLeave}</p>
             <p className="tiny">{t.saveBeforeLeaveHint}</p>
             <div className="book-exit-actions">

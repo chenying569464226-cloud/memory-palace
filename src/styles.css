@@ -450,6 +450,29 @@ input {
   box-sizing: border-box;
 }
 
+.book-editor-immersive {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  max-width: none;
+  margin: 0;
+  padding: calc(8px + env(safe-area-inset-top, 0px))
+    calc(10px + env(safe-area-inset-right, 0px))
+    calc(8px + env(safe-area-inset-bottom, 0px))
+    calc(10px + env(safe-area-inset-left, 0px));
+  background: #11140f;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.book-editor-immersive .book-doc-frame {
+  flex: 1;
+  min-height: 0;
+  border-radius: 12px;
+}
+
 .book-doc-frame {
   background: #f7f3ea;
   color: #2a2a2a;
@@ -462,6 +485,7 @@ input {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .book-doc-toolbar {
@@ -470,9 +494,15 @@ input {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
+  margin: -4px -4px 12px;
+  padding: 6px 4px 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  flex-shrink: 0;
+  background: #f7f3ea;
+  touch-action: manipulation;
 }
 
 .book-doc-toolbar-start {
@@ -505,10 +535,26 @@ input {
   background: rgba(0, 0, 0, 0.04);
 }
 
-.book-doc-tool {
+.book-doc-tool,
+.book-doc-done,
+.book-doc-close {
   margin: 0;
   width: auto;
   flex: 0 0 auto;
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  z-index: 13;
+}
+
+.book-doc-done {
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: #2a2a2a;
+  border-color: rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.65);
 }
 
 .book-doc-label {
@@ -605,13 +651,14 @@ input {
 .book-exit-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1100;
+  z-index: 1300;
   background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
   box-sizing: border-box;
+  touch-action: manipulation;
 }
 
 .book-exit-sheet {
@@ -630,12 +677,20 @@ input {
 .book-exit-actions .primary,
 .book-exit-actions .ghost {
   width: 100%;
+  min-height: 48px;
+  touch-action: manipulation;
+}
+
+.book-editor-immersive .book-doc-name,
+.book-editor-immersive .book-doc-hint,
+.book-editor-immersive .book-doc-label {
+  flex-shrink: 0;
 }
 
 .book-doc-frame .doc-editor {
   flex: 1;
-  min-height: 62vh;
-  min-height: 62dvh;
+  min-height: 120px;
+  min-height: 0;
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.1);
   color: #222;
@@ -643,8 +698,11 @@ input {
   padding: 14px 16px;
   line-height: 1.75;
   font-size: 1.02rem;
-  resize: vertical;
+  resize: none;
   box-sizing: border-box;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: manipulation;
 }
 
 .doc-editor {
