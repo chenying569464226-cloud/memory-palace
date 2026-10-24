@@ -96,6 +96,10 @@ export const STR = {
     forgetRate: (v) => `遗忘率 ${v}%`,
     stageRetainHint: (r) => `记忆保存约 ${r}%`,
     shuffleBand: "打乱顺序",
+    curveGuideTitle: "遗忘曲线档位",
+    curveGuideBody:
+      "记下概念后按真实经过的时间进入各档；概念页与巩固页只显示进度条，具体档位与参考记忆保存率如下。",
+    curveGuideRetain: (pct) => `记忆保存约 ${pct}%`,
     currentStage: (label) => `当前 ${label}`,
     nextStage: (label, retain) => ` → 下一档 ${label} ${retain}%`,
     lastStage: " · 已到 31 天档",
@@ -244,6 +248,10 @@ export const STR = {
     forgetRate: (v) => `Forgotten ${v}%`,
     stageRetainHint: (r) => `About ${r}% retained`,
     shuffleBand: "Shuffle",
+    curveGuideTitle: "Forgetting curve stages",
+    curveGuideBody:
+      "After you add a concept, real elapsed time moves it through these stages. Concept and Review tabs show only the bar; reference retention:",
+    curveGuideRetain: (pct) => `About ${pct}% retained`,
     currentStage: (label) => `Now ${label}`,
     nextStage: (label, retain) => ` → next ${label} ${retain}%`,
     lastStage: " · at 31-day mark",

@@ -513,15 +513,10 @@ export default function App() {
           {CURVE.filter((p) => CONCEPT_TAB_BAND_IDS.has(p.id)).map((point) => {
             const items = groupedConcept[point.id];
             if (!items?.length) return null;
-            const label = CURVE_LABEL[point.id][lang];
             return (
               <section className="group" key={point.id}>
-                <div className="group-head">
-                  <div>
-                    <h2 className="group-title">{label}</h2>
-                    <p className="tiny group-curve-hint">{t.stageRetainHint(point.retain)}</p>
-                  </div>
-                  {items.length > 1 && (
+                {items.length > 1 && (
+                  <div className="group-head group-head-minimal">
                     <button
                       type="button"
                       className="ghost band-shuffle-btn"
@@ -529,8 +524,8 @@ export default function App() {
                     >
                       {t.shuffleBand}
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
                 {items.map((item) => (
                   <ConceptCard
                     key={item.id}
@@ -575,12 +570,10 @@ export default function App() {
           {CURVE.filter((p) => REVIEW_STAGE_IDS.has(p.id)).map((point) => {
             const items = groupedReview[point.id];
             if (!items?.length) return null;
-            const label = CURVE_LABEL[point.id][lang];
             return (
               <section className="group" key={point.id}>
-                <div className="group-head">
-                  <h2 className="group-title">{t.stageBand(label, point.retain)}</h2>
-                  {items.length > 1 && (
+                {items.length > 1 && (
+                  <div className="group-head group-head-minimal">
                     <button
                       type="button"
                       className="ghost band-shuffle-btn"
@@ -588,8 +581,8 @@ export default function App() {
                     >
                       {t.shuffleBand}
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
                 {items.map((item) => (
                   <ConceptCard
                     key={item.id}
@@ -690,6 +683,18 @@ export default function App() {
               {t.langEn}
             </button>
           </div>
+          <div className="subject" style={{ marginTop: 16 }}>
+            {t.curveGuideTitle}
+          </div>
+          <p className="sub">{t.curveGuideBody}</p>
+          <ul className="curve-guide-list">
+            {CURVE.filter((p) => p.id !== "now").map((point) => (
+              <li key={point.id} className="curve-guide-row">
+                <span>{CURVE_LABEL[point.id][lang]}</span>
+                <span className="meta">{t.curveGuideRetain(point.retain)}</span>
+              </li>
+            ))}
+          </ul>
           <div className="subject" style={{ marginTop: 16 }}>
             {t.autoTitle}
           </div>
