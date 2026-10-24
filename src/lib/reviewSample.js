@@ -27,6 +27,7 @@ export function createReviewSampleConcept(now = Date.now()) {
     weekDoneAt: null,
     monthDoneAt: null,
     isSample: true,
+    sortRank: 0.5,
   };
 }
 

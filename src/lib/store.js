@@ -1,3 +1,4 @@
+import { defaultSortRank } from "./bandOrder.js";
 import { shouldPurge } from "./curve.js";
 import { createId } from "./id.js";
 import { withReviewSample } from "./reviewSample.js";
@@ -31,6 +32,10 @@ function migrateConcept(item) {
     categoryId,
     isSample: Boolean(item.isSample),
     palaceOnly: Boolean(item.palaceOnly),
+    sortRank:
+      typeof item.sortRank === "number" && Number.isFinite(item.sortRank)
+        ? item.sortRank
+        : defaultSortRank(),
   };
 }
 
@@ -96,5 +101,6 @@ export function newConcept({ title = "", text, answer = "", chapter = "", catego
     weekDoneAt: null,
     monthDoneAt: null,
     palaceOnly: false,
+    sortRank: defaultSortRank(),
   };
 }

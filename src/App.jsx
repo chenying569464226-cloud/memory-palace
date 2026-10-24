@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   CONSOLIDATION,
   CURVE,
@@ -15,6 +15,7 @@ import {
   composeBookDocument,
   parseBookDocument,
 } from "./lib/bookDoc.js";
+import { sortBucketArrays, sortConceptsInBand } from "./lib/bandOrder.js";
 import { conceptDisplayTitle } from "./lib/concept.js";
 import { exportBookFiles } from "./lib/export.js";
 import { exportBookToWord } from "./lib/exportWord.js";
@@ -119,7 +120,16 @@ export default function App() {
   const hadConceptItemsRef = useRef(false);
   const backupInputRef = useRef(null);
   const storageWarnedRef = useRef(false);
+  const tabsNavRef = useRef(null);
+  const [tabBarPad, setTabBarPad] = useState(96);
   const t = STR[lang];
+
+  const measureTabBar = useCallback(() => {
+    const el = tabsNavRef.current;
+    if (!el) return;
+    const h = Math.ceil(el.getBoundingClientRect().height);
+    if (h > 0) setTabBarPad(h + 6);
+  }, []);
 
   const syncConceptTextareaHeight = useCallback(() => {
     const el = conceptTextRef.current;
@@ -302,7 +312,7 @@ export default function App() {
       const band = conceptTabBandId(item.createdAt, now);
       if (band) buckets[band]?.push(item);
     }
-    return buckets;
+    return sortBucketArrays(buckets);
   }, [live, now]);
 
   const groupedReview = useMemo(() => {
@@ -314,8 +324,10 @@ export default function App() {
       const stage = stageOf(item.createdAt, now);
       if (REVIEW_STAGE_IDS.has(stage.id)) buckets[stage.id]?.push(item);
     }
-    return buckets;
+    return sortBucketArrays(buckets);
   }, [live, now]);
+
+  const forgottenSorted = useMemo(() => sortConceptsInBand(forgotten), [forgotten]);
 
   const due = live.filter((item) => {
     if (item.palaceOnly) return false;
@@ -391,6 +403,31 @@ export default function App() {
   const bookFocus = immersiveRead || immersiveEdit;
   const hideAppChrome = palaceBookOpen;
 
+  useLayoutEffect(() => {
+    if (hideAppChrome) return undefined;
+    measureTabBar();
+    const raf = requestAnimationFrame(measureTabBar);
+    const tmr = window.setTimeout(measureTabBar, 150);
+    const vv = window.visualViewport;
+    vv?.addEventListener("resize", measureTabBar);
+    window.addEventListener("resize", measureTabBar);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(tmr);
+      vv?.removeEventListener("resize", measureTabBar);
+      window.removeEventListener("resize", measureTabBar);
+    };
+  }, [measureTabBar, hideAppChrome, tab, conceptFormExpanded, hasConceptItems]);
+
+  function shuffleConcepts(ids) {
+    const idSet = new Set(ids);
+    setConcepts((list) =>
+      list.map((item) =>
+        idSet.has(item.id) ? { ...item, sortRank: Math.random() } : item,
+      ),
+    );
+  }
+
   function exportAppBackup() {
     try {
       downloadBackup();
@@ -427,7 +464,10 @@ export default function App() {
   const conceptFabActive = tab === "home" && conceptFormExpanded;
 
   return (
-    <div className={`app ${bookFocus ? "app-immersive" : ""}`}>
+    <div
+      className={`app ${bookFocus ? "app-immersive" : ""}`}
+      style={{ "--tab-bar-space": `${tabBarPad}px` }}
+    >
       {tab === "home" && !bookId && (
         <>
           {conceptFormExpanded && (
@@ -476,8 +516,21 @@ export default function App() {
             const label = CURVE_LABEL[point.id][lang];
             return (
               <section className="group" key={point.id}>
-                <h2 className="group-title">{label}</h2>
-                <p className="tiny group-curve-hint">{t.stageRetainHint(point.retain)}</p>
+                <div className="group-head">
+                  <div>
+                    <h2 className="group-title">{label}</h2>
+                    <p className="tiny group-curve-hint">{t.stageRetainHint(point.retain)}</p>
+                  </div>
+                  {items.length > 1 && (
+                    <button
+                      type="button"
+                      className="ghost band-shuffle-btn"
+                      onClick={() => shuffleConcepts(items.map((i) => i.id))}
+                    >
+                      {t.shuffleBand}
+                    </button>
+                  )}
+                </div>
                 {items.map((item) => (
                   <ConceptCard
                     key={item.id}
@@ -525,7 +578,18 @@ export default function App() {
             const label = CURVE_LABEL[point.id][lang];
             return (
               <section className="group" key={point.id}>
-                <h2>{t.stageBand(label, point.retain)}</h2>
+                <div className="group-head">
+                  <h2 className="group-title">{t.stageBand(label, point.retain)}</h2>
+                  {items.length > 1 && (
+                    <button
+                      type="button"
+                      className="ghost band-shuffle-btn"
+                      onClick={() => shuffleConcepts(items.map((i) => i.id))}
+                    >
+                      {t.shuffleBand}
+                    </button>
+                  )}
+                </div>
                 {items.map((item) => (
                   <ConceptCard
                     key={item.id}
@@ -534,14 +598,9 @@ export default function App() {
                     lang={lang}
                     t={t}
                     categories={categories}
+                    compact
                     showConsolidation
-                    showCategory
                     onDone={markDone}
-                    onCategoryChange={assignConceptCategory}
-                    onAddCategory={(name) => {
-                      const newId = addCategoryFromInput(name);
-                      if (newId) assignConceptCategory(item.id, newId);
-                    }}
                     onRemoveSample={item.isSample ? removeReviewSample : undefined}
                   />
                 ))}
@@ -555,7 +614,7 @@ export default function App() {
             {forgotten.length === 0 ? (
               <div className="empty">{t.emptyForgotten}</div>
             ) : (
-              forgotten.map((item) => (
+              forgottenSorted.map((item) => (
                 <ForgottenCard
                   key={item.id}
                   item={item}
@@ -665,7 +724,7 @@ export default function App() {
       )}
 
       {!hideAppChrome && (
-        <nav className="tabs tabs-with-fab">
+        <nav ref={tabsNavRef} className="tabs tabs-with-fab">
           <button
             className={tab === "home" ? "on" : ""}
             onClick={() => {
@@ -842,7 +901,7 @@ function ConceptCard({
           />
         </div>
       )}
-      <div className="meta">{t.elapsed(formatAge(age, lang))}</div>
+      {!compact && <div className="meta">{t.elapsed(formatAge(age, lang))}</div>}
       <Bar value={retain} t={t} />
       {!compact && (
         <>
@@ -919,7 +978,7 @@ function SwipeBookRow({ t, onDelete, children }) {
   const xRef = useRef(0);
   const start = useRef(null);
   const axisRef = useRef(null);
-  const open = 92;
+  const open = 62;
   const axisLockPx = 6;
 
   function slideTo(next) {

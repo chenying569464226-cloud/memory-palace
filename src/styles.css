@@ -444,7 +444,7 @@ input {
 }
 
 .swipe-actions.one {
-  width: 92px;
+  width: 62px;
   grid-template-columns: 1fr;
 }
 
@@ -852,6 +852,31 @@ input {
   margin: 18px 0 4px;
   color: var(--muted);
   font-weight: 600;
+}
+
+.group-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 18px 0 4px;
+}
+
+.group-head .group-title {
+  margin: 0 0 4px;
+}
+
+.group-head .group-curve-hint {
+  margin: 0;
+}
+
+.band-shuffle-btn {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  margin: 0;
+  width: auto;
+  touch-action: manipulation;
 }
 
 .group-curve-hint {
